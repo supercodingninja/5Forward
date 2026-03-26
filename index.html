@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Super Coding Ninja™ | 5 Year Anniversary - Explorable Universe</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --neon-gold: #ffd700;
+            --dark-bg: #050508;
+            --grid-color: rgba(0, 243, 255, 0.1);
+            --royal-purple: #7851a9;
+            --bronze: #cd7f32;
+            --scn-orange: #ff8c00;
+        }
+        
+        body {
+            background: var(--dark-bg);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s;
+            mix-blend-mode: difference;
+        }
+        
+        .cursor-follower {
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, var(--neon-blue) 0%, transparent 70%);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.3;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark-bg);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+        
+        .loader-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .loader-bar {
+            width: 300px;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loader-progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--royal-purple), var(--bronze));
+            animation: load 3s ease forwards;
+        }
+        
+        @keyframes load {
+            to { width: 100%; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* MORPHING RADIO CONTROLS SYSTEM */
+        .radio-container {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .morph-button {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--bronze));
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 30px rgba(120, 81, 169, 0.5), 0 0 60px rgba(205, 127, 50, 0.3);
+            overflow: hidden;
+        }
+        
+        .morph-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(120, 81, 169, 0.8), 0 0 80px rgba(205, 127, 50, 0.5);
+        }
+        
+        /* Hamburger State */
+        .hamburger-line {
+            width: 28px;
+            height: 3px;
+            background: #fff;
+            border-radius: 2px;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        
+        /* SCN Text State */
+        .scn-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 2px;
+            opacity: 0;
+            transform: scale(0);
+            position: absolute;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+        
+        /* Radio Controls State */
+        .radio-controls {
+            position: absolute;
+            right: 70px;
+            top: 50%;
+            transform: translateY(-50%) scaleX(0);
+            background: linear-gradient(135deg, rgba(120, 81, 169, 0.95), rgba(205, 127, 50, 0.95));
+            padding: 15px 25px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            opacity: 0;
+            transform-origin: right;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 40px rgba(120, 81, 169, 0.6);
+            backdrop-filter: blur(10px);
+            width: max-content;
+        }
+        
+        .radio-controls.active {
+            opacity: 1;
+            transform: translateY(-50%) scaleX(1);
+        }
+        
+        /* Morphing States */
+        .morph-button.stage-2 .hamburger-line {
+            opacity: 0;
+            transform: scale(0);
+        }
+        
+        .morph-button.stage-2 .scn-text {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .morph-button.stage-3 {
+            width: 60px;
+            background: linear-gradient(135deg, var(--bronze), var(--royal-purple));
+        }
+        
+        /* Radio Control Elements */
+        .control-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        
+        .volume-slider {
+            width: 100px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: rgba(0,0,0,0.3);
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--bronze));
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .track-info {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .visualizer {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+            height: 30px;
+        }
+        
+        .viz-bar {
+            width: 4px;
+            background: linear-gradient(to top, var(--bronze), var(--royal-purple));
+            border-radius: 2px;
+            animation: viz 1s ease-in-out infinite;
+        }
+        
+        .viz-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+        .viz-bar:nth-child(2) { height: 20px; animation-delay: 0.1s; }
+        .viz-bar:nth-child(3) { height: 15px; animation-delay: 0.2s; }
+        .viz-bar:nth-child(4) { height: 25px; animation-delay: 0.3s; }
+        .viz-bar:nth-child(5) { height: 12px; animation-delay: 0.4s; }
+        
+        @keyframes viz {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.5); }
+        }
+        
+        /* Music Copyright Notice */
+        .copyright-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.9rem;
+            z-index: 999;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            line-height: 1.4;
+        }
+        
+        .copyright-notice .through-it-all {
+            color: var(--neon-blue);
+            font-weight: 700;
+        }
+        
+        .copyright-notice .scn-musiq {
+            font-family: 'Orbitron', monospace;
+            font-style: italic;
+            font-weight: 700;
+        }
+        
+        .copyright-notice .scn-holdings {
+            color: var(--scn-orange);
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .copyright-notice .scn-holdings:hover {
+            text-shadow: 0 0 10px var(--scn-orange);
+        }
+        
+        /* Universe Explorer Section */
+        #universe-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+        
+        .universe-ui {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+        }
+        
+        .universe-header {
+            text-align: center;
+            pointer-events: auto;
+        }
+        
+        .explore-badge {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--bronze));
+            border-radius: 50px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(120, 81, 169, 0.5), 0 0 60px rgba(205, 127, 50, 0.3);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .universe-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff, var(--royal-purple), var(--bronze));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 60px rgba(120, 81, 169, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .universe-subtitle {
+            font-size: 1.2rem;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+        
+        .controls-hint {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            pointer-events: auto;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(120, 81, 169, 0.5);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .warp-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 50px;
+            background: linear-gradient(135deg, var(--bronze), var(--royal-purple));
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            box-shadow: 0 0 40px rgba(205, 127, 50, 0.6);
+            z-index: 100;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .warp-button.visible {
+            opacity: 1;
+            pointer-events: auto;
+            animation: pulse 2s infinite;
+        }
+        
+        .warp-button:hover {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 60px rgba(255, 140, 0, 0.8);
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-10px); }
+        }
+        
+        .scroll-line {
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--royal-purple), transparent);
+            margin-top: 10px;
+        }
+        
+        /* Content Sections */
+        .content-wrapper {
+            position: relative;
+            z-index: 20;
+            margin-top: 100vh;
+            background: linear-gradient(to bottom, transparent, var(--dark-bg) 10%);
+        }
+        
+        .journey-section {
+            min-height: 100vh;
+            padding: 100px 20px;
+            position: relative;
+        }
+        
+        .section-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 60px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: linear-gradient(90deg, var(--royal-purple), var(--bronze));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .timeline {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--royal-purple), var(--bronze));
+            box-shadow: 0 0 20px var(--royal-purple);
+        }
+        
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 80px;
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+        
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+            transform: translateX(50px);
+        }
+        
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(120, 81, 169, 0.5);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            position: relative;
+            transform: perspective(1000px) rotateY(5deg);
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-item:nth-child(even) .timeline-content {
+            transform: perspective(1000px) rotateY(-5deg);
+        }
+        
+        .timeline-content:hover {
+            transform: perspective(1000px) rotateY(0deg) scale(1.05);
+            border-color: var(--bronze);
+            box-shadow: 0 0 30px rgba(205, 127, 50, 0.3);
+        }
+        
+        .timeline-year {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            color: var(--bronze);
+            margin-bottom: 10px;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--royal-purple);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px var(--royal-purple), 0 0 40px var(--bronze);
+            z-index: 10;
+        }
+        
+        /* Recap Video Section */
+        .recap-section {
+            min-height: 100vh;
+            padding: 100px 20px;
+            position: relative;
+            background: radial-gradient(ellipse at center, rgba(120, 81, 169, 0.1) 0%, transparent 70%);
+        }
+        
+        .video-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(120, 81, 169, 0.3);
+            border: 2px solid rgba(120, 81, 169, 0.5);
+        }
+        
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(20,20,40,0.9));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .video-placeholder:hover {
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(40,20,60,0.8));
+        }
+        
+        .play-button {
+            width: 100px;
+            height: 100px;
+            border: 3px solid var(--royal-purple);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            position: relative;
+            animation: pulse 2s infinite;
+        }
+        
+        .play-button::before {
+            content: '▶';
+            font-size: 2.5rem;
+            color: var(--royal-purple);
+            margin-left: 10px;
+        }
+        
+        .play-button::after {
+            content: '';
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border: 2px solid var(--bronze);
+            border-radius: 50%;
+            animation: ripple 2s infinite;
+        }
+        
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .video-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .video-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            letter-spacing: 3px;
+            text-align: center;
+        }
+        
+        .youtube-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 25px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .youtube-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        
+        /* Montage Grid */
+        .montage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 60px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .montage-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(120, 81, 169, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .montage-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .montage-card:hover::before {
+            left: 100%;
+        }
+        
+        .montage-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--bronze);
+            box-shadow: 0 10px 40px rgba(205, 127, 50, 0.2);
+        }
+        
+        .montage-year {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--bronze);
+            margin-bottom: 10px;
+        }
+        
+        /* Projects Showcase */
+        .projects-section {
+            min-height: 100vh;
+            padding: 100px 20px;
+            position: relative;
+        }
+        
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .project-card {
+            background: linear-gradient(135deg, rgba(120, 81, 169, 0.1), rgba(205, 127, 50, 0.1));
+            border: 1px solid rgba(120, 81, 169, 0.3);
+            border-radius: 30px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--bronze);
+            box-shadow: 0 20px 60px rgba(120, 81, 169, 0.3);
+        }
+        
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .project-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--bronze);
+        }
+        
+        /* Stats Counter */
+        .stats-section {
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, rgba(120, 81, 169, 0.05), rgba(205, 127, 50, 0.05));
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 60px;
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-family: 'Orbitron', monospace;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--bronze), var(--royal-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Celebration Section */
+        .celebration-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px 20px;
+        }
+        
+        .celebration-text {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2rem, 5vw, 4rem);
+            max-width: 800px;
+            line-height: 1.4;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #fff, var(--bronze));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, var(--royal-purple), var(--bronze));
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-radius: 50px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 0 30px rgba(120, 81, 169, 0.5);
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(205, 127, 50, 0.8);
+        }
+        
+        /* Warp Overlay */
+        .warp-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        .warp-overlay.active {
+            animation: flash 1s forwards;
+        }
+        
+        @keyframes flash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .radio-controls {
+                right: 60px;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+            
+            .volume-slider {
+                width: 60px;
+            }
+            
+            .track-info {
+                max-width: 80px;
+                font-size: 0.7rem;
+            }
+            
+            .timeline::before {
+                left: 20px;
+            }
+            
+            .timeline-item,
+            .timeline-item:nth-child(even) {
+                padding-left: 60px;
+                padding-right: 20px;
+                justify-content: flex-start;
+            }
+            
+            .timeline-dot {
+                left: 20px;
+            }
+            
+            .copyright-notice {
+                font-size: 0.75rem;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-text">INITIALIZING UNIVERSE...</div>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+    </div>
+    
+    <!-- Warp Flash Overlay -->
+    <div class="warp-overlay" id="warpOverlay"></div>
+    
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    
+    <!-- Background Audio Element -->
+    <audio id="bgMusic" loop preload="auto">
+        <!-- Replace with your actual music file URL -->
+        <source src="through-it-all.mp3" type="audio/mpeg">
+        <source src="through-it-all.ogg" type="audio/ogg">
+    </audio>
+    
+    <!-- MORPHING RADIO CONTROLS SYSTEM -->
+    <div class="radio-container">
+        <div class="radio-controls" id="radioControls">
+            <button class="control-btn" id="playPauseBtn" title="Play/Pause">▶</button>
+            <div class="visualizer" id="visualizer">
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+                <div class="viz-bar"></div>
+            </div>
+            <span class="track-info" id="trackInfo">Through It All</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+        </div>
+        
+        <button class="morph-button" id="morphBtn" onclick="handleMorphClick()">
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+            <div class="scn-text">&lt;SCN/&gt;</div>
+        </button>
+    </div>
+    
+    <!-- Music Copyright Notice -->
+    <div class="copyright-notice">
+        &copy; February 2026 <span class="through-it-all">Through It All</span>, <span class="scn-musiq">𝑏𝑦 𝑆𝐶𝑁musiq&#8482;</span>. All rights reserved. <a href="https://scn.ninja/" class="scn-holdings">"SCN Holdings, LLC&#8482;"</a>
+    </div>
+    
+    <!-- Universe Container -->
+    <div id="universe-container"></div>
+    
+    <!-- Universe UI -->
+    <div class="universe-ui">
+        <div class="universe-header">
+            <div class="explore-badge">🚀 5 Year Anniversary 🚀</div>
+            <h1 class="universe-title glitch" data-text="THE SUPER CODING NINJA">THE SUPER CODING NINJA</h1>
+            <p class="universe-subtitle">Explorable Universe Experience</p>
+        </div>
+        
+        <button class="warp-button" id="warpButton" onclick="activateWarp()">INITIATE WARP SPEED</button>
+        
+        <div class="controls-hint">
+            <strong>MOUSE</strong> to Explore • <strong>CLICK</strong> Stars to Discover • <strong>SCROLL</strong> to Journey<br>
+            <span style="font-size: 0.8rem; opacity: 0.7;">Background music playing: Through It All by SCNmusiq™</span>
+        </div>
+        
+        <div class="scroll-indicator">
+            <span style="font-size: 0.8rem; letter-spacing: 2px;">BEGIN JOURNEY</span>
+            <div class="scroll-line"></div>
+        </div>
+    </div>
+    
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <!-- Journey Section -->
+        <section class="journey-section">
+            <h2 class="section-title">The 5-Year Odyssey</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2021</div>
+                        <h3>The Genesis</h3>
+                        <p>The Super Coding Ninja™ emerged. First projects launched, establishing the foundation of excellence.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2022</div>
+                        <h3>NTCC Music App</h3>
+                        <p>First major platform deployment, connecting churches through innovative music management.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2023</div>
+                        <h3>Adoración Global</h3>
+                        <p>Global worship platform with 47+ languages, AI-powered tools, and auto-dubbing technology.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2024</div>
+                        <h3>Innovation Peak</h3>
+                        <p>AI integrations, RAT Hunter Pro concept, and advanced WebGL experiences developed.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2026</div>
+                        <h3>5 Years Strong</h3>
+                        <p>Celebrating half a decade of impact. From local apps to global platforms serving millions.</p>
+                    </div>
+                    <div class="timeline-dot"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Projects Section -->
+        <section class="projects-section">
+            <h2 class="section-title">Flagship Creations</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-icon">🌍</div>
+                    <h3 class="project-title">Adoración</h3>
+                    <p>Global Worship Platform with 47+ language translations and AI-powered worship tools.</p>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-icon">🎵</div>
+                    <h3 class="project-title">NTCC Music App</h3>
+                    <p>Church Music Management System for music directors worldwide.</p>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-icon">🛡️</div>
+                    <h3 class="project-title">RAT Hunter Pro</h3>
+                    <p>Advanced Financial Defense System with threat detection and INTERPOL integration.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" data-target="5">0</div>
+                    <div class="stat-label">Years</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="47">0</div>
+                    <div class="stat-label">Languages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="3">0</div>
+                    <div class="stat-label">Platforms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-target="1000000">0</div>
+                    <div class="stat-label">Lives Impacted</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Cinematic Recap Video Section -->
+        <section class="recap-section">
+            <h2 class="section-title">Journey Recap Video</h2>
+            
+            <div class="video-container">
+                <div class="video-wrapper" id="videoWrapper">
+                    <div class="video-placeholder" onclick="playAnniversaryVideo()">
+                        <div class="play-button"></div>
+                        <div class="video-title">5 Years in 5 Minutes</div>
+                        <div class="video-subtitle">Click to Watch the Anniversary Special</div>
+                        <div style="margin-top: 10px; font-size: 0.9rem; opacity: 0.7;">▶ Music: Through It All by SCNmusiq™</div>
+                    </div>
+                    <div id="youtubePlayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;"></div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <p style="margin-bottom: 15px; opacity: 0.8;">Enjoying the video? Support the channel!</p>
+                    <a href="https://youtu.be/TJQHIXAvIzg" target="_blank" class="youtube-link" onclick="window.open('https://youtu.be/TJQHIXAvIzg', '_blank'); return false;">
+                        🔴 Open on YouTube to Like & Subscribe
+                    </a>
+                </div>
+            </div>
+            
+            <div class="montage-grid">
+                <div class="montage-card">
+                    <div class="montage-year">2021</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">The Beginning</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">From zero to first deployment. Setting the foundation.</div>
+                </div>
+                
+                <div class="montage-card">
+                    <div class="montage-year">2022</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">First Major Launch</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">NTCC Music App changed everything. First real users.</div>
+                </div>
+                
+                <div class="montage-card">
+                    <div class="montage-year">2023</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">Going Global</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">Adoración launched. 47 languages, countless worshippers.</div>
+                </div>
+                
+                <div class="montage-card">
+                    <div class="montage-year">2024</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">AI & Innovation</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">Integrating artificial intelligence, pushing WebGL limits.</div>
+                </div>
+                
+                <div class="montage-card">
+                    <div class="montage-year">2026</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">Legacy Building</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">Five years of impact. Millions reached worldwide.</div>
+                </div>
+                
+                <div class="montage-card" style="border-color: var(--bronze);">
+                    <div class="montage-year">FUTURE</div>
+                    <div style="font-weight: 700; margin-bottom: 10px;">Next Frontier</div>
+                    <div style="opacity: 0.8; font-size: 0.95rem;">The journey continues. The best is yet to come.</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Celebration Section -->
+        <section class="celebration-section">
+            <div class="celebration-text">
+                "From Code to Creation,<br>
+                From Vision to Reality,<br>
+                Five Years of Excellence"
+            </div>
+            <p style="font-size: 1.2rem; opacity: 0.8; margin-bottom: 40px; max-width: 600px;">
+                Thank you for being part of this incredible journey. 
+                Here's to the next 5 years of innovation!
+            </p>
+            <a href="https://scn.ninja/" class="cta-button">Explore The Future</a>
+        </section>
+    </div>
+    
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    
+    <script>
+        // Remove loader
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loader').style.display = 'none';
+                }, 500);
+            }, 3000);
+        });
+        
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const follower = document.querySelector('.cursor-follower');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            setTimeout(() => {
+                follower.style.left = e.clientX + 'px';
+                follower.style.top = e.clientY + 'px';
+            }, 100);
+        });
+        
+        // ==========================================
+        // MORPHING RADIO CONTROLS SYSTEM
+        // ==========================================
+        
+        let morphStage = 1; // 1 = Hamburger, 2 = SCN, 3 = Radio
+        const morphBtn = document.getElementById('morphBtn');
+        const radioControls = document.getElementById('radioControls');
+        const bgMusic = document.getElementById('bgMusic');
+        let isPlaying = false;
+        let audioUnlocked = false;
+        
+        // Initialize audio (muted to allow autoplay)
+        bgMusic.volume = 0.7;
+        bgMusic.muted = true;
+        
+        // Try autoplay muted
+        bgMusic.play().then(() => {
+            console.log('Autoplay started muted');
+        }).catch(e => {
+            console.log('Autoplay blocked:', e);
+        });
+        
+        function handleMorphClick() {
+            if (morphStage === 1) {
+                // Hamburger -> SCN
+                morphBtn.classList.add('stage-2');
+                morphStage = 2;
+                
+                // Unlock audio on first user interaction
+                if (!audioUnlocked) {
+                    bgMusic.muted = false;
+                    isPlaying = true;
+                    document.getElementById('playPauseBtn').textContent = '⏸';
+                    audioUnlocked = true;
+                    console.log('Audio unlocked and playing');
+                }
+                
+                setTimeout(() => {
+                    morphBtn.classList.add('stage-3');
+                    radioControls.classList.add('active');
+                    morphStage = 3;
+                }, 600);
+                
+            } else if (morphStage === 3) {
+                // Close radio controls
+                radioControls.classList.remove('active');
+                morphBtn.classList.remove('stage-3');
+                setTimeout(() => {
+                    morphBtn.classList.remove('stage-2');
+                    morphStage = 1;
+                }, 300);
+            }
+        }
+        
+        // Play/Pause Control
+        document.getElementById('playPauseBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (isPlaying) {
+                bgMusic.pause();
+                document.getElementById('playPauseBtn').textContent = '▶';
+                document.getElementById('visualizer').style.opacity = '0.3';
+            } else {
+                bgMusic.play();
+                document.getElementById('playPauseBtn').textContent = '⏸';
+                document.getElementById('visualizer').style.opacity = '1';
+            }
+            isPlaying = !isPlaying;
+        });
+        
+        // Volume Control
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            bgMusic.volume = e.target.value / 100;
+        });
+        
+        // Update visualizer based on actual audio (if Web Audio API available)
+        // Simplified animation handled by CSS for now
+        
+        // ==========================================
+        // THREE.JS UNIVERSE
+        // ==========================================
+        
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('universe-container').appendChild(renderer.domElement);
+        
+        // Galaxy Generation
+        const galaxyParams = {
+            count: 8000,
+            size: 0.02,
+            radius: 20,
+            branches: 5,
+            spin: 1,
+            randomness: 0.2,
+            randomnessPower: 3,
+            insideColor: '#ff6030',
+            outsideColor: '#1b3984'
+        };
+        
+        let galaxyPoints = null;
+        
+        const generateGalaxy = () => {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(galaxyParams.count * 3);
+            const colors = new Float32Array(galaxyParams.count * 3);
+            
+            const insideColor = new THREE.Color(galaxyParams.insideColor);
+            const outsideColor = new THREE.Color(galaxyParams.outsideColor);
+            
+            for(let i = 0; i < galaxyParams.count; i++) {
+                const i3 = i * 3;
+                const radius = Math.random() * galaxyParams.radius;
+                const spinAngle = radius * galaxyParams.spin;
+                const branchAngle = (i % galaxyParams.branches) / galaxyParams.branches * Math.PI * 2;
+                
+                const randomX = Math.pow(Math.random(), galaxyParams.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParams.randomness * radius;
+                const randomY = Math.pow(Math.random(), galaxyParams.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParams.randomness * radius;
+                const randomZ = Math.pow(Math.random(), galaxyParams.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * galaxyParams.randomness * radius;
+                
+                positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+                positions[i3 + 1] = randomY;
+                positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+                
+                const mixedColor = insideColor.clone();
+                mixedColor.lerp(outsideColor, radius / galaxyParams.radius);
+                
+                colors[i3] = mixedColor.r;
+                colors[i3 + 1] = mixedColor.g;
+                colors[i3 + 2] = mixedColor.b;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: galaxyParams.size,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+            
+            galaxyPoints = new THREE.Points(geometry, material);
+            scene.add(galaxyPoints);
+        };
+        
+        generateGalaxy();
+        
+        // Milestone Stars
+        const milestoneData = [
+            { year: '2021', color: 0x7851a9 },
+            { year: '2022', color: 0xcd7f32 },
+            { year: '2023', color: 0xffd700 },
+            { year: '2024', color: 0xff6b35 },
+            { year: '2026', color: 0x00ff88 }
+        ];
+        
+        const starMeshes = [];
+        milestoneData.forEach((data, index) => {
+            const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: data.color,
+                emissive: data.color,
+                emissiveIntensity: 0.5
+            });
+            const star = new THREE.Mesh(geometry, material);
+            
+            const angle = (index / milestoneData.length) * Math.PI * 2;
+            const radius = 12;
+            star.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 4, Math.sin(angle) * radius);
+            
+            scene.add(star);
+            starMeshes.push(star);
+            
+            gsap.to(star.scale, {
+                x: 1.2, y: 1.2, z: 1.2,
+                duration: 2 + index * 0.5,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut"
+            });
+        });
+        
+        camera.position.z = 30;
+        
+        // Mouse Interaction
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+        
+        // Warp Function
+        window.activateWarp = function() {
+            document.getElementById('warpOverlay').classList.add('active');
+            gsap.to(camera.position, {
+                z: 100,
+                duration: 2,
+                ease: "power2.in"
+            });
+            setTimeout(() => {
+                window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+                setTimeout(() => {
+                    camera.position.z = 30;
+                    document.getElementById('warpOverlay').classList.remove('active');
+                }, 1000);
+            }, 1500);
+        };
+        
+        // Animation Loop
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+            
+            galaxyPoints.rotation.y = elapsedTime * 0.05;
+            camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // ==========================================
+        // GSAP ANIMATIONS
+        // ==========================================
+        
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Timeline Items
+        gsap.utils.toArray('.timeline-item').forEach((item, i) => {
+            gsap.to(item, {
+                scrollTrigger: {
+                    trigger: item,
+                    start: 'top 80%',
+                    toggleActions: 'play none none reverse'
+                },
+                opacity: 1,
+                x: 0,
+                duration: 0.8,
+                delay: i * 0.1,
+                ease: 'power3.out'
+            });
+        });
+        
+        // Project Cards
+        gsap.utils.toArray('.project-card').forEach((card, i) => {
+            gsap.to(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: 'top 85%',
+                    toggleActions: 'play none none reverse'
+                },
+                opacity: 1,
+                y: 0,
+                duration: 0.6,
+                delay: i * 0.2,
+                ease: 'back.out(1.7)'
+            });
+        });
+        
+        // Stats Counter
+        document.querySelectorAll('.stat-number').forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-target'));
+            ScrollTrigger.create({
+                trigger: stat,
+                start: 'top 80%',
+                onEnter: () => {
+                    gsap.to(stat, {
+                        innerHTML: target,
+                        duration: 2,
+                        snap: { innerHTML: 1 },
+                        ease: 'power2.out',
+                        onUpdate: function() {
+                            stat.innerHTML = Math.ceil(this.targets()[0].innerHTML).toLocaleString();
+                        }
+                    });
+                }
+            });
+        });
+        
+        // ==========================================
+        // YOUTUBE VIDEO INTEGRATION
+        // ==========================================
+        
+        let player;
+        
+        function onYouTubeIframeAPIReady() {
+            // Player initialized but not loaded yet
+            console.log('YouTube API Ready');
+        }
+        
+        window.playAnniversaryVideo = function() {
+            const placeholder = document.querySelector('.video-placeholder');
+            const playerDiv = document.getElementById('youtubePlayer');
+            
+            placeholder.style.display = 'none';
+            playerDiv.style.display = 'block';
+            
+            if (!player) {
+                player = new YT.Player('youtubePlayer', {
+                    videoId: 'TJQHIXAvIzg',
+                    playerVars: {
+                        autoplay: 1,
+                        controls: 1,
+                        modestbranding: 1,
+                        rel: 0,
+                        showinfo: 0
+                    },
+                    events: {
+                        onReady: function(e) {
+                            e.target.playVideo();
+                        }
+                    }
+                });
+            } else {
+                player.playVideo();
+            }
+            
+            // Pause background music when video plays
+            if (isPlaying) {
+                bgMusic.pause();
+                document.getElementById('playPauseBtn').textContent = '▶';
+                isPlaying = false;
+            }
+        };
+        
+        // Continue background music when clicking outside video
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.video-wrapper') && !isPlaying && audioUnlocked) {
+                bgMusic.play();
+                document.getElementById('playPauseBtn').textContent = '⏸';
+                isPlaying = true;
+            }
+        });
+    </script>
+</body>
+</html>
